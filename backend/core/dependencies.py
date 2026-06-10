@@ -11,39 +11,15 @@ from sqlalchemy.orm import Session
 import jwt
 from jwt.exceptions import InvalidTokenError
 
-from services.item_service import ItemService
-from database.session import SessionLocal
+from database.session import get_db
 from core.config import settings
 from schemas.auth import TokenData
 from models.user import User
 from services.user_service import get_user_by_username
 
 # ---------------------------------------------------------------------------
-# Singleton service instances
-#
-# Because we use in-memory storage, we need a single ItemService
-# instance that persists across requests. When we move to a real
-# database, these can become request-scoped instead.
+# Auth Dependencies
 # ---------------------------------------------------------------------------
-
-_item_service = ItemService()
-
-
-def get_item_service() -> ItemService:
-    """Provide the shared ItemService instance via FastAPI Depends."""
-    return _item_service
-
-# ---------------------------------------------------------------------------
-# Database and Auth Dependencies
-# ---------------------------------------------------------------------------
-
-def get_db():
-    """Dependency to provide a database session."""
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
