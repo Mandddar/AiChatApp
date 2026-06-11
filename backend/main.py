@@ -15,7 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from database.session import engine
 from database.base import Base
-from routers import root, health, auth, users
+from routers import root, health, auth, users, chats
+
+# Import all models so Base.metadata.create_all can discover them
+import models.user      # noqa: F401
+import models.chat      # noqa: F401
+import models.message   # noqa: F401
 
 
 # ---------------------------------------------------------------------------
@@ -67,3 +72,4 @@ app.include_router(root.router)       # GET /
 app.include_router(health.router)     # GET /health
 app.include_router(auth.router)       # /auth register/login
 app.include_router(users.router)      # /users endpoints
+app.include_router(chats.router)      # /chats endpoints

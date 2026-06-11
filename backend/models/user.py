@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy.orm import relationship
 from database.base import Base
 
 class User(Base):
@@ -10,3 +11,6 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    # Relationships
+    chats = relationship("Chat", back_populates="user", cascade="all, delete-orphan")
