@@ -21,7 +21,7 @@ from services.chat_service import (
     get_user_chats,
     validate_chat_ownership,
     get_chat_messages,
-    create_message,
+    process_chat_message,
 )
 
 
@@ -80,7 +80,7 @@ def list_chat_messages(
     return get_chat_messages(db, chat_id)
 
 
-@router.post("/{chat_id}/messages", response_model=MessageResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/{chat_id}/messages", response_model=list[MessageResponse], status_code=status.HTTP_201_CREATED)
 def send_message(
     chat_id: int,
     message_in: MessageCreate,
@@ -89,9 +89,7 @@ def send_message(
 ):
     """
     Send a user message in the specified chat.
-
-    Phase 1: Stores the message and returns it.
-    No AI response is generated yet.
+    Generates and returns an AI response along with the user's message.
     """
     validate_chat_ownership(db, chat_id, user_id=current_user.id)
-    return create_message(db, chat_id, message_in, role="user")
+    return process_chat_message(db, chat_id, message_in)

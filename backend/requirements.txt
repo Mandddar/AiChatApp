@@ -9,3 +9,4 @@ bcrypt==3.2.0
 pyjwt
 python-multipart
 email-validator
+google-generativeai

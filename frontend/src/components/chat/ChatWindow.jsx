@@ -1,12 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import MessageBubble, { TypingIndicator } from './MessageBubble';
 import ChatInput from './ChatInput';
 import EmptyChatState from './EmptyChatState';
 import { Menu, Sparkles } from 'lucide-react';
 
-const ChatWindow = ({ initialMessages = [], onMessagesUpdate }) => {
-  const [messages, setMessages] = useState(initialMessages);
-  const [isTyping, setIsTyping] = useState(false);
+const ChatWindow = ({ messages = [], isTyping = false, onSendMessage }) => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -16,27 +14,6 @@ const ChatWindow = ({ initialMessages = [], onMessagesUpdate }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      onMessagesUpdate(messages);
-    }
-  }, [messages]);
-
-  const handleSendMessage = (content) => {
-    const userMessage = { role: 'user', content };
-    setMessages(prev => [...prev, userMessage]);
-    
-    setIsTyping(true);
-    setTimeout(() => {
-      const aiMessage = { 
-        role: 'assistant', 
-        content: `I received your message: "${content}". This is a dummy response since the AI endpoint is not yet connected.`
-      };
-      setMessages(prev => [...prev, aiMessage]);
-      setIsTyping(false);
-    }, 1200);
-  };
 
   return (
     <div className="flex-1 flex flex-col h-screen bg-background relative">
@@ -59,7 +36,7 @@ const ChatWindow = ({ initialMessages = [], onMessagesUpdate }) => {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto relative">
         {messages.length === 0 ? (
-          <EmptyChatState onSuggestionClick={handleSendMessage} />
+          <EmptyChatState onSuggestionClick={onSendMessage} />
         ) : (
           <div className="max-w-3xl mx-auto py-6">
             {messages.map((msg, idx) => (
@@ -74,7 +51,7 @@ const ChatWindow = ({ initialMessages = [], onMessagesUpdate }) => {
       {/* Input */}
       <div className="flex-shrink-0 relative">
         <div className="absolute bottom-full left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-        <ChatInput onSendMessage={handleSendMessage} disabled={isTyping} />
+        <ChatInput onSendMessage={onSendMessage} disabled={isTyping} />
       </div>
     </div>
   );

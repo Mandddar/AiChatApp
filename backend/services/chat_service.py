@@ -11,6 +11,11 @@ from fastapi import HTTPException, status
 from models.chat import Chat
 from models.message import Message
 from schemas.chat import ChatCreate, MessageCreate
+from core.config import settings
+import google.generativeai as genai
+
+if settings.GEMINI_API_KEY:
+    genai.configure(api_key=settings.GEMINI_API_KEY)
 
 
 # ---------------------------------------------------------------------------
@@ -99,3 +104,41 @@ def create_message(db: Session, chat_id: int, message_in: MessageCreate, role: s
     db.commit()
     db.refresh(db_message)
     return db_message
+
+
+def process_chat_message(db: Session, chat_id: int, message_in: MessageCreate) -> list[Message]:
+    """
+    Process an incoming user message, generate an AI response via Gemini,
+    save both to the database, and return them.
+    """
+    # 1. Save the user message
+    user_msg = create_message(db, chat_id, message_in, role="user")
+
+    # 2. Get full conversation history
+    history = get_chat_messages(db, chat_id)
+
+    # 3. Format history for Gemini API (roles: 'user' or 'model')
+    gemini_history = []
+    # Exclude the very last message we just added from history, 
+    # since we pass the latest message directly to the chat session or as the new prompt.
+    # Actually, Gemini `generate_content` can take the entire conversation array if it ends with 'user'.
+    for msg in history:
+        gemini_role = "user" if msg.role == "user" else "model"
+        gemini_history.append({"role": gemini_role, "parts": [{"text": msg.content}]})
+
+    # 4. Generate AI response
+    assistant_text = "I am not configured with an API key yet. Please add GEMINI_API_KEY to your .env file."
+    if settings.GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel("gemini-flash-latest")
+            response = model.generate_content(gemini_history)
+            assistant_text = response.text
+        except Exception as e:
+            print(f"Error calling Gemini API: {e}")
+            assistant_text = "Sorry, I encountered an error while trying to process your request."
+
+    # 5. Save the assistant message
+    ai_msg_data = MessageCreate(content=assistant_text)
+    assistant_msg = create_message(db, chat_id, ai_msg_data, role="assistant")
+
+    return [user_msg, assistant_msg]

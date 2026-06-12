@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://postgres:postgres@localhost/ai_chat_app"
 
+    # AI Model
+    GEMINI_API_KEY: str | None = None
+
     # JWT Authentication
     SECRET_KEY: str = "a_very_secret_key_change_in_production"
     ALGORITHM: str = "HS256"
