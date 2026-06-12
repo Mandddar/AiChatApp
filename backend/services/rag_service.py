@@ -42,8 +42,9 @@ def _get_embeddings():
     if not settings.GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not configured")
     return GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001",
+        model="models/gemini-embedding-2",
         google_api_key=settings.GEMINI_API_KEY,
+        output_dimensionality=768,
     )
 
 def _get_vectorstore():
