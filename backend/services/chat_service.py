@@ -106,10 +106,13 @@ def create_message(db: Session, chat_id: int, message_in: MessageCreate, role: s
     return db_message
 
 
-def process_chat_message(db: Session, chat_id: int, message_in: MessageCreate) -> list[Message]:
+def process_chat_message(db: Session, chat_id: int, message_in: MessageCreate, user_id: int) -> list[Message]:
     """
     Process an incoming user message, generate an AI response via Gemini,
     save both to the database, and return them.
+
+    If the user has uploaded documents, relevant chunks are retrieved
+    from the vector store and injected into the system prompt.
     """
     # 1. Save the user message
     user_msg = create_message(db, chat_id, message_in, role="user")
@@ -119,25 +122,48 @@ def process_chat_message(db: Session, chat_id: int, message_in: MessageCreate) -
 
     # 3. Format history for Gemini API (roles: 'user' or 'model')
     gemini_history = []
-    # Exclude the very last message we just added from history, 
-    # since we pass the latest message directly to the chat session or as the new prompt.
-    # Actually, Gemini `generate_content` can take the entire conversation array if it ends with 'user'.
     for msg in history:
         gemini_role = "user" if msg.role == "user" else "model"
         gemini_history.append({"role": gemini_role, "parts": [{"text": msg.content}]})
 
-    # 4. Generate AI response
+    # 4. Retrieve relevant document context (RAG)
+    context_text = ""
+    try:
+        from services.rag_service import search_documents
+        relevant_chunks = search_documents(message_in.content, user_id, n_results=5)
+        if relevant_chunks:
+            context_text = "\n\n---\n\n".join(relevant_chunks)
+    except Exception as e:
+        print(f"RAG search error (non-fatal): {e}")
+
+    # 5. Build system instruction with optional document context
+    base_instruction = (
+        "Your name is Aurora. You are a helpful, friendly, and highly intelligent "
+        "AI assistant created for this application. Never say you are developed by Google."
+    )
+    if context_text:
+        base_instruction += (
+            "\n\nThe user has uploaded documents. Below are relevant excerpts from those "
+            "documents that may help you answer the user's question. Use this context when "
+            "relevant, but don't force it if the user's question is unrelated.\n\n"
+            f"--- DOCUMENT CONTEXT ---\n{context_text}\n--- END CONTEXT ---"
+        )
+
+    # 6. Generate AI response
     assistant_text = "I am not configured with an API key yet. Please add GEMINI_API_KEY to your .env file."
     if settings.GEMINI_API_KEY:
         try:
-            model = genai.GenerativeModel("gemini-flash-latest")
+            model = genai.GenerativeModel(
+                "gemini-flash-latest",
+                system_instruction=base_instruction,
+            )
             response = model.generate_content(gemini_history)
             assistant_text = response.text
         except Exception as e:
             print(f"Error calling Gemini API: {e}")
             assistant_text = "Sorry, I encountered an error while trying to process your request."
 
-    # 5. Save the assistant message
+    # 7. Save the assistant message
     ai_msg_data = MessageCreate(content=assistant_text)
     assistant_msg = create_message(db, chat_id, ai_msg_data, role="assistant")
 

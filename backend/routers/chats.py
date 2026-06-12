@@ -92,4 +92,4 @@ def send_message(
     Generates and returns an AI response along with the user's message.
     """
     validate_chat_ownership(db, chat_id, user_id=current_user.id)
-    return process_chat_message(db, chat_id, message_in)
+    return process_chat_message(db, chat_id, message_in, user_id=current_user.id)

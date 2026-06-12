@@ -22,6 +22,27 @@ export const chatApi = {
   // Send a message and get the AI response back
   sendMessage: async (chatId, content) => {
     const response = await api.post(`/chats/${chatId}/messages`, { content });
-    return response.data; // Now returns a list of [userMessage, aiMessage]
-  }
+    return response.data; // Returns a list of [userMessage, aiMessage]
+  },
+
+  // Upload a PDF document for RAG
+  uploadDocument: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/documents/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // List all uploaded documents
+  getDocuments: async () => {
+    const response = await api.get('/documents/');
+    return response.data;
+  },
+
+  // Delete a document
+  deleteDocument: async (documentId) => {
+    await api.delete(`/documents/${documentId}`);
+  },
 };

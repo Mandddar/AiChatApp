@@ -36,3 +36,7 @@ frontend/dist/
 
 # Debug / temp files
 test_db.py
+
+# RAG data
+backend/chroma_data/
+backend/uploads/

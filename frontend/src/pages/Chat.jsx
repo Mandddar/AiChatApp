@@ -7,21 +7,27 @@ const Chat = () => {
   const [conversations, setConversations] = useState([]); // Array of { id, title, messages }
   const [activeConversationId, setActiveConversationId] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
 
-  // Fetch conversations on mount
+  // Fetch conversations and documents on mount
   useEffect(() => {
-    const loadChats = async () => {
+    const loadData = async () => {
       try {
-        const chats = await chatApi.getChats();
+        const [chats, docs] = await Promise.all([
+          chatApi.getChats(),
+          chatApi.getDocuments(),
+        ]);
         setConversations(chats);
+        setDocuments(docs);
         if (chats.length > 0) {
           handleSelectConversation(chats[0].id);
         }
       } catch (error) {
-        console.error("Failed to load chats:", error);
+        console.error("Failed to load data:", error);
       }
     };
-    loadChats();
+    loadData();
   }, []);
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
@@ -98,6 +104,28 @@ const Chat = () => {
     }
   };
 
+  const handleUploadDocument = async (file) => {
+    setUploadingDoc(true);
+    try {
+      const doc = await chatApi.uploadDocument(file);
+      setDocuments(prev => [doc, ...prev]);
+    } catch (error) {
+      console.error("Failed to upload document:", error);
+      alert("Failed to upload document. Please try again.");
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
+
+  const handleDeleteDocument = async (docId) => {
+    try {
+      await chatApi.deleteDocument(docId);
+      setDocuments(prev => prev.filter(d => d.id !== docId));
+    } catch (error) {
+      console.error("Failed to delete document:", error);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background font-sans text-textMain overflow-hidden">
       <Sidebar
@@ -105,12 +133,16 @@ const Chat = () => {
         conversations={conversations}
         activeConversationId={activeConversationId}
         onSelectConversation={handleSelectConversation}
+        documents={documents}
+        onDeleteDocument={handleDeleteDocument}
       />
       <ChatWindow
         key={activeConversationId || 'new'}
         messages={activeMessages}
         isTyping={isTyping}
         onSendMessage={handleSendMessage}
+        onUploadDocument={handleUploadDocument}
+        uploadingDoc={uploadingDoc}
       />
     </div>
   );

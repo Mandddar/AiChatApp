@@ -1,8 +1,8 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import { Plus, MessageSquare, LogOut, Sparkles } from 'lucide-react';
+import { Plus, MessageSquare, LogOut, Sparkles, FileText, Trash2 } from 'lucide-react';
 
-const Sidebar = ({ onNewChat, conversations, activeConversationId, onSelectConversation }) => {
+const Sidebar = ({ onNewChat, conversations, activeConversationId, onSelectConversation, documents = [], onDeleteDocument }) => {
   const { user, logout } = useContext(AuthContext);
 
   return (
@@ -47,6 +47,38 @@ const Sidebar = ({ onNewChat, conversations, activeConversationId, onSelectConve
                   }`} />
                   <span className="truncate">{conv.title}</span>
                 </button>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Documents Section */}
+        {documents.length > 0 && (
+          <>
+            <div className="text-[10px] font-semibold text-textDim uppercase tracking-widest mt-5 mb-2 px-3">
+              Knowledge Base
+            </div>
+            <div className="space-y-0.5">
+              {documents.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-textMuted hover:bg-surfaceHover transition-all group"
+                >
+                  <FileText className={`w-3.5 h-3.5 flex-shrink-0 ${
+                    doc.status === 'ready' ? 'text-green-400' : doc.status === 'processing' ? 'text-yellow-400' : 'text-red-400'
+                  }`} />
+                  <span className="truncate flex-1 text-xs">{doc.original_name}</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteDocument(doc.id);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 text-textDim hover:text-danger p-0.5 rounded transition-all"
+                    title="Remove document"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
               ))}
             </div>
           </>

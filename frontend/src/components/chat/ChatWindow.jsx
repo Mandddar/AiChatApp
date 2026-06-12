@@ -4,7 +4,7 @@ import ChatInput from './ChatInput';
 import EmptyChatState from './EmptyChatState';
 import { Menu, Sparkles } from 'lucide-react';
 
-const ChatWindow = ({ messages = [], isTyping = false, onSendMessage }) => {
+const ChatWindow = ({ messages = [], isTyping = false, onSendMessage, onUploadDocument, uploadingDoc }) => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
@@ -51,7 +51,7 @@ const ChatWindow = ({ messages = [], isTyping = false, onSendMessage }) => {
       {/* Input */}
       <div className="flex-shrink-0 relative">
         <div className="absolute bottom-full left-0 right-0 h-12 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-        <ChatInput onSendMessage={onSendMessage} disabled={isTyping} />
+        <ChatInput onSendMessage={onSendMessage} onUploadDocument={onUploadDocument} disabled={isTyping} uploadingDoc={uploadingDoc} />
       </div>
     </div>
   );
