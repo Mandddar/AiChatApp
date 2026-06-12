@@ -126,6 +126,10 @@ def process_chat_message(db: Session, chat_id: int, message_in: MessageCreate, u
         gemini_role = "user" if msg.role == "user" else "model"
         gemini_history.append({"role": gemini_role, "parts": [{"text": msg.content}]})
 
+    # Release the database transaction before we make long network calls 
+    # to prevent Neon Serverless Postgres from dropping the idle connection.
+    db.commit()
+
     # 4. Retrieve relevant document context (RAG)
     context_text = ""
     try:

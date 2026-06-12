@@ -13,5 +13,6 @@ google-generativeai
 langchain
 langchain-google-genai
 langchain-community
-chromadb
+pinecone-client
+langchain-pinecone
 pypdf

@@ -16,7 +16,7 @@ from core.dependencies import get_current_user, get_db
 from models.user import User
 from models.document import Document
 from schemas.document import DocumentResponse
-from services.rag_service import process_pdf, UPLOADS_DIR
+from services.rag_service import process_pdf, delete_document_vectors, UPLOADS_DIR
 
 
 router = APIRouter(
@@ -124,6 +124,9 @@ def delete_document(
     file_path = UPLOADS_DIR / doc.filename
     if file_path.exists():
         os.remove(file_path)
+
+    # Delete from Pinecone
+    delete_document_vectors(current_user.id, doc.filename)
 
     # Delete from database
     db.delete(doc)

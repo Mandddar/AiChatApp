@@ -21,6 +21,10 @@ class Settings(BaseSettings):
 
     # AI Model
     GEMINI_API_KEY: str | None = None
+    
+    # Vector Database (Pinecone)
+    PINECONE_API_KEY: str | None = None
+    PINECONE_INDEX_NAME: str = "aichatapp"
 
     # JWT Authentication
     SECRET_KEY: str = "a_very_secret_key_change_in_production"
