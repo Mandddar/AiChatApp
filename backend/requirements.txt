@@ -5,7 +5,7 @@ pydantic-settings
 sqlalchemy
 psycopg2
 passlib
-bcrypt==3.2.0
+bcrypt>=4.0.1
 pyjwt
 python-multipart
 email-validator
@@ -16,3 +16,4 @@ langchain-community
 pinecone-client
 langchain-pinecone
 pypdf
+PyYAML>=6.0.2
