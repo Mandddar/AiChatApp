@@ -8,6 +8,7 @@ and Google's embedding model.
 
 import os
 import uuid
+import tempfile
 from pathlib import Path
 
 from langchain_community.document_loaders import PyPDFLoader
@@ -22,7 +23,7 @@ from core.config import settings
 # Setup and Configuration
 # ---------------------------------------------------------------------------
 
-UPLOADS_DIR = Path(__file__).parent.parent / "uploads"
+UPLOADS_DIR = Path(tempfile.gettempdir()) / "aichatapp_uploads"
 UPLOADS_DIR.mkdir(exist_ok=True)
 
 # ---------------------------------------------------------------------------
